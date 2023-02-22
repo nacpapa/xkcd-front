@@ -1,7 +1,8 @@
 import Head from "next/head";
 import Header from "components/Header";
 import Image from "next/image";
-import { readFile, stat } from "fs/promises";
+import { readFile, stat, readdir } from "fs/promises";
+import { basename } from "path";
 import Link from "next/link";
 
 export default function Comic({
@@ -27,19 +28,21 @@ export default function Comic({
       <Header />
 
       <main>
-        <section className='max-w-lg m-auto'>
-          <h1 className='font-bold'>{title}</h1>
-          <Image width={width} height={height} src={img} alt={alt} />
+        <section className='max-w-lg m-auto mt-4 font-bold'>
+          <h1 className='font-bold text-center text-xl'>{title}</h1>
+          <div className='max-w-xs m-auto'>
+            <Image width={width} height={height} src={img} alt={alt} />
+          </div>
           <p>{alt}</p>
           {/* Create pagination with nextId and prevId if available */}
           <div className='flex justify-between'>
             {hasPrevious && (
-              <Link href={`/comic/${prevId}`} className='text-blue-500'>
+              <Link href={`/comic/${prevId}`} className='text-gray-500'>
                 Previous
               </Link>
             )}
             {hasNext && (
-              <Link href={`/comic/${nextId}`} className='text-blue-500'>
+              <Link href={`/comic/${nextId}`} className='text-gray-500'>
                 Next
               </Link>
             )}
@@ -51,10 +54,14 @@ export default function Comic({
 }
 
 export async function getStaticPaths() {
-  const files = await fs.readdir("./comics");
+  const files = await readdir("./comics");
+  const paths = files.map((file) => {
+    const id = basename(file, ".json");
+    return { params: { id } };
+  });
 
   return {
-    paths: [{ params: { id: "2500" } }],
+    paths,
     // si intentas entrar a una ruta que no existe, te va a mostrar la página de error 404
     fallback: true,
   };
